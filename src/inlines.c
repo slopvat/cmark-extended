@@ -1,3 +1,12 @@
+/**
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Added strikethrough delimiter handling and inline parsing for
+ *   table cells.
+ * - References: https://github.com/github/cmark-gfm (27d942c)
+ */
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,6 +85,9 @@ static inline bool S_is_line_end_char(char c) {
 
 static delimiter *S_insert_emph(subject *subj, delimiter *opener,
                                 delimiter *closer);
+
+static delimiter *S_insert_strikethrough(subject *subj, delimiter *opener,
+                                         delimiter *closer);
 
 static int parse_inline(subject *subj, cmark_node *parent, int options);
 
@@ -582,7 +594,9 @@ static cmark_node *handle_delim(subject *subj, unsigned char c, bool smart) {
 
   inl_text = make_str(subj, subj->pos - numdelims, subj->pos - 1, contents);
 
-  if ((can_open || can_close) && (!(c == '\'' || c == '"') || smart)) {
+  // Strikethrough requires exactly two tildes.
+  if ((can_open || can_close) && (!(c == '\'' || c == '"') || smart) &&
+      !(c == '~' && numdelims != 2)) {
     push_delimiter(subj, c, can_open, can_close, inl_text);
   }
 
@@ -686,6 +700,9 @@ static void process_emphasis(subject *subj, bufsize_t stack_bottom) {
         openers_bottom_index = 8 +
                 (closer->can_open ? 3 : 0) + (closer->length % 3);
         break;
+      case '~':
+        openers_bottom_index = 14;
+        break;
       default:
         assert(false);
       }
@@ -695,7 +712,9 @@ static void process_emphasis(subject *subj, bufsize_t stack_bottom) {
       opener_found = false;
       while (opener != NULL &&
              opener->position >= openers_bottom[openers_bottom_index]) {
-        if (opener->can_open && opener->delim_char == closer->delim_char) {
+        if (opener->can_open && opener->delim_char == closer->delim_char &&
+            (closer->delim_char != '~' ||
+             opener->length == closer->length)) {
           // interior closer of size 2 can't match opener of size 1
           // or of size 1 can't match 2
           if (!(closer->can_open || opener->can_close) ||
@@ -711,6 +730,12 @@ static void process_emphasis(subject *subj, bufsize_t stack_bottom) {
       if (closer->delim_char == '*' || closer->delim_char == '_') {
         if (opener_found) {
           closer = S_insert_emph(subj, opener, closer);
+        } else {
+          closer = closer->next;
+        }
+      } else if (closer->delim_char == '~') {
+        if (opener_found) {
+          closer = S_insert_strikethrough(subj, opener, closer);
         } else {
           closer = closer->next;
         }
@@ -831,6 +856,63 @@ static delimiter *S_insert_emph(subject *subj, delimiter *opener,
   }
 
   return closer;
+}
+
+static delimiter *S_insert_strikethrough(subject *subj, delimiter *opener,
+                                         delimiter *closer) {
+  delimiter *delim, *tmp_delim;
+  cmark_node *strikethrough = opener->inl_text;
+  cmark_node *closer_inl = closer->inl_text;
+  cmark_node *parent = strikethrough->parent;
+  cmark_node *after = closer_inl->next;
+  cmark_node *tmp, *tmpnext;
+  delimiter *res = closer->next;
+
+  strikethrough->end_column =
+      closer_inl->start_column + closer_inl->len - 1;
+  subj->mem->free(strikethrough->data);
+  strikethrough->data = NULL;
+  strikethrough->len = 0;
+  strikethrough->type = (uint16_t)CMARK_NODE_STRIKETHROUGH;
+
+  tmp = strikethrough->next;
+  if (tmp && tmp != closer_inl) {
+    strikethrough->first_child = tmp;
+    tmp->prev = NULL;
+
+    while (tmp && tmp != closer_inl) {
+      tmpnext = tmp->next;
+      tmp->parent = strikethrough;
+      if (tmpnext == closer_inl) {
+        strikethrough->last_child = tmp;
+        tmp->next = NULL;
+      }
+      tmp = tmpnext;
+    }
+  }
+
+  strikethrough->next = after;
+  if (after) {
+    after->prev = strikethrough;
+  } else if (parent) {
+    parent->last_child = strikethrough;
+  }
+
+  closer_inl->next = NULL;
+  closer_inl->prev = NULL;
+  closer_inl->parent = NULL;
+  cmark_node_free(closer_inl);
+
+  // free delimiters between opener and closer
+  delim = closer;
+  while (delim != NULL && delim != opener) {
+    tmp_delim = delim->previous;
+    remove_delimiter(subj, delim);
+    delim = tmp_delim;
+  }
+  remove_delimiter(subj, opener);
+
+  return res;
 }
 
 // Parse backslash-escape or just a backslash, returning an inline.
@@ -1300,12 +1382,13 @@ static bufsize_t subject_find_special_char(subject *subj, int options) {
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1,
       1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  };
 
   // " ' . -
   static const char SMART_PUNCT_CHARS[] = {
@@ -1365,6 +1448,7 @@ static int parse_inline(subject *subj, cmark_node *parent, int options) {
     break;
   case '*':
   case '_':
+  case '~':
   case '\'':
   case '"':
     new_inl = handle_delim(subj, c, (options & CMARK_OPT_SMART) != 0);
@@ -1416,8 +1500,12 @@ static int parse_inline(subject *subj, cmark_node *parent, int options) {
 // Parse inlines from parent's string_content, adding as children of parent.
 void cmark_parse_inlines(cmark_mem *mem, cmark_node *parent,
                          cmark_reference_map *refmap, int options) {
-  int internal_offset = parent->type == CMARK_NODE_HEADING ?
-    parent->as.heading.internal_offset : 0;
+  int internal_offset = 0;
+  if (parent->type == CMARK_NODE_HEADING) {
+    internal_offset = parent->as.heading.internal_offset;
+  } else if (parent->type == CMARK_NODE_TABLE_CELL) {
+    internal_offset = parent->as.table_cell.internal_offset;
+  }
   subject subj;
   cmark_chunk content = {parent->data, parent->len};
   subject_from_buf(mem, parent->start_line, parent->start_column - 1 + internal_offset, &subj, &content, refmap);

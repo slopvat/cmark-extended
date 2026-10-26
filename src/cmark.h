@@ -1,3 +1,10 @@
+/**
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Added the table and strikethrough node types.
+ */
+
 #ifndef CMARK_H
 #define CMARK_H
 
@@ -46,9 +53,12 @@ typedef enum {
   CMARK_NODE_PARAGRAPH,
   CMARK_NODE_HEADING,
   CMARK_NODE_THEMATIC_BREAK,
+  CMARK_NODE_TABLE,
+  CMARK_NODE_TABLE_ROW,
+  CMARK_NODE_TABLE_CELL,
 
   CMARK_NODE_FIRST_BLOCK = CMARK_NODE_DOCUMENT,
-  CMARK_NODE_LAST_BLOCK = CMARK_NODE_THEMATIC_BREAK,
+  CMARK_NODE_LAST_BLOCK = CMARK_NODE_TABLE_CELL,
 
   /* Inline */
   CMARK_NODE_TEXT,
@@ -61,9 +71,10 @@ typedef enum {
   CMARK_NODE_STRONG,
   CMARK_NODE_LINK,
   CMARK_NODE_IMAGE,
+  CMARK_NODE_STRIKETHROUGH,
 
   CMARK_NODE_FIRST_INLINE = CMARK_NODE_TEXT,
-  CMARK_NODE_LAST_INLINE = CMARK_NODE_IMAGE
+  CMARK_NODE_LAST_INLINE = CMARK_NODE_STRIKETHROUGH
 } cmark_node_type;
 
 /* For backwards compatibility: */

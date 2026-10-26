@@ -1,3 +1,11 @@
+/**
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Added node type strings, containment rules and cleanup for tables
+ *   and strikethrough.
+ */
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,18 +71,28 @@ static bool S_can_contain(cmark_node *node, cmark_node *child) {
   case CMARK_NODE_DOCUMENT:
   case CMARK_NODE_BLOCK_QUOTE:
   case CMARK_NODE_ITEM:
-    return cmark_node_is_block(child) && child->type != CMARK_NODE_ITEM;
+    return cmark_node_is_block(child) && child->type != CMARK_NODE_ITEM &&
+           child->type != CMARK_NODE_TABLE_ROW &&
+           child->type != CMARK_NODE_TABLE_CELL;
 
   case CMARK_NODE_LIST:
     return child->type == CMARK_NODE_ITEM;
+
+  case CMARK_NODE_TABLE:
+    return child->type == CMARK_NODE_TABLE_ROW;
+
+  case CMARK_NODE_TABLE_ROW:
+    return child->type == CMARK_NODE_TABLE_CELL;
 
   case CMARK_NODE_CUSTOM_BLOCK:
     return true;
 
   case CMARK_NODE_PARAGRAPH:
   case CMARK_NODE_HEADING:
+  case CMARK_NODE_TABLE_CELL:
   case CMARK_NODE_EMPH:
   case CMARK_NODE_STRONG:
+  case CMARK_NODE_STRIKETHROUGH:
   case CMARK_NODE_LINK:
   case CMARK_NODE_IMAGE:
   case CMARK_NODE_CUSTOM_INLINE:
@@ -132,6 +150,9 @@ static void S_free_nodes(cmark_node *e) {
     case CMARK_NODE_CODE:
     case CMARK_NODE_HTML_BLOCK:
       mem->free(e->data);
+      break;
+    case CMARK_NODE_TABLE:
+      mem->free(e->as.table.alignments);
       break;
     case CMARK_NODE_LINK:
     case CMARK_NODE_IMAGE:
@@ -199,6 +220,12 @@ const char *cmark_node_get_type_string(cmark_node *node) {
     return "heading";
   case CMARK_NODE_THEMATIC_BREAK:
     return "thematic_break";
+  case CMARK_NODE_TABLE:
+    return "table";
+  case CMARK_NODE_TABLE_ROW:
+    return node->as.table_row.is_header ? "table_header" : "table_row";
+  case CMARK_NODE_TABLE_CELL:
+    return "table_cell";
   case CMARK_NODE_TEXT:
     return "text";
   case CMARK_NODE_SOFTBREAK:
@@ -219,6 +246,8 @@ const char *cmark_node_get_type_string(cmark_node *node) {
     return "link";
   case CMARK_NODE_IMAGE:
     return "image";
+  case CMARK_NODE_STRIKETHROUGH:
+    return "strikethrough";
   }
 
   return "<unknown>";

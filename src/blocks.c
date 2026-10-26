@@ -1,6 +1,13 @@
 /**
  * Block parsing implementation.
  *
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Integrated table block parsing and enabled extended autolinking
+ *   after the document is parsed.
+ * - References: https://github.com/github/cmark-gfm (27d942c)
+ *
  * For a high-level overview of the block parsing process,
  * see http://spec.commonmark.org/0.24/#phase-1-block-structure
  */
@@ -22,6 +29,8 @@
 #include "houdini.h"
 #include "buffer.h"
 #include "chunk.h"
+#include "autolink.h"
+#include "table.h"
 
 #define CODE_INDENT 4
 #define TAB_STOP 4
@@ -162,10 +171,16 @@ static bool is_blank(cmark_strbuf *s, bufsize_t offset) {
 
 static inline bool can_contain(cmark_node_type parent_type,
                                cmark_node_type child_type) {
-  return (parent_type == CMARK_NODE_DOCUMENT ||
-          parent_type == CMARK_NODE_BLOCK_QUOTE ||
-          parent_type == CMARK_NODE_ITEM ||
-          (parent_type == CMARK_NODE_LIST && child_type == CMARK_NODE_ITEM));
+  return ((parent_type == CMARK_NODE_DOCUMENT ||
+           parent_type == CMARK_NODE_BLOCK_QUOTE ||
+           parent_type == CMARK_NODE_ITEM) &&
+          child_type != CMARK_NODE_TABLE_ROW &&
+          child_type != CMARK_NODE_TABLE_CELL) ||
+         (parent_type == CMARK_NODE_LIST && child_type == CMARK_NODE_ITEM) ||
+         (parent_type == CMARK_NODE_TABLE &&
+          child_type == CMARK_NODE_TABLE_ROW) ||
+         (parent_type == CMARK_NODE_TABLE_ROW &&
+          child_type == CMARK_NODE_TABLE_CELL);
 }
 
 static inline bool accepts_lines(cmark_node_type block_type) {
@@ -176,7 +191,8 @@ static inline bool accepts_lines(cmark_node_type block_type) {
 
 static inline bool contains_inlines(cmark_node_type block_type) {
   return (block_type == CMARK_NODE_PARAGRAPH ||
-          block_type == CMARK_NODE_HEADING);
+          block_type == CMARK_NODE_HEADING ||
+          block_type == CMARK_NODE_TABLE_CELL);
 }
 
 static void add_line(cmark_chunk *ch, cmark_parser *parser) {
@@ -396,6 +412,11 @@ static cmark_node *add_child(cmark_parser *parser, cmark_node *parent,
   }
   parent->last_child = child;
   return child;
+}
+
+cmark_node *cmark_parser_add_child(cmark_parser *parser, cmark_node *parent,
+                                   cmark_node_type type, int start_column) {
+  return add_child(parser, parent, type, start_column);
 }
 
 // Walk through node and all children, recursively, parsing
@@ -776,6 +797,11 @@ static void S_advance_offset(cmark_parser *parser, cmark_chunk *input,
   }
 }
 
+void cmark_parser_advance_offset(cmark_parser *parser, cmark_chunk *input,
+                                 bufsize_t count, bool columns) {
+  S_advance_offset(parser, input, count, columns);
+}
+
 static bool S_last_child_is_open(cmark_node *container) {
   return container->last_child &&
          (container->last_child->flags & CMARK_NODE__OPEN);
@@ -957,6 +983,14 @@ static cmark_node *check_open_blocks(cmark_parser *parser, cmark_chunk *input,
       if (!parse_html_block_prefix(parser, container))
         goto done;
       break;
+    case CMARK_NODE_TABLE:
+      if (!cmark_table_row_matches(parser, container, input))
+        goto done;
+      break;
+    case CMARK_NODE_TABLE_ROW:
+    case CMARK_NODE_TABLE_CELL:
+      // table rows and cells contain no further block structure
+      goto done;
     case CMARK_NODE_PARAGRAPH:
       if (parser->blank)
         goto done;
@@ -1146,6 +1180,12 @@ static void open_new_blocks(cmark_parser *parser, cmark_node **container,
       (*container)->as.code.fence_offset = 0;
       (*container)->as.code.info = NULL;
 
+    } else if (!indented && cont_type == CMARK_NODE_PARAGRAPH &&
+               cmark_table_open_header(parser, container, input)) {
+      // the paragraph's last line became a table header
+    } else if (!indented && cont_type == CMARK_NODE_TABLE &&
+               cmark_table_open_row(parser, container, input)) {
+      // a table row was added
     } else {
       break;
     }
@@ -1341,6 +1381,7 @@ cmark_node *cmark_parser_finish(cmark_parser *parser) {
   finalize_document(parser);
 
   cmark_consolidate_text_nodes(parser->root);
+  cmark_autolink_process(parser->mem, parser->root);
 
   cmark_strbuf_free(&parser->curline);
 

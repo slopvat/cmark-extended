@@ -63,6 +63,28 @@ There are also libraries that wrap `libcmark` for
 [Scala](https://github.com/sparsetech/cmark-scala) and
 [PHP](https://www.php.net/manual/en/book.cmark.php).
 
+Extensions
+----------
+
+**AI Disclosure:**
+- **Authorship:** AI-assisted
+- **Models:** deepseek-v4.1-flash (DeepSeek)
+- **Scope:** Documented the extensions added to this fork.
+
+This fork enables three GitHub Flavored Markdown extensions
+unconditionally; they cannot be turned off:
+
+- Strikethrough with `~~text~~`. Single tildes are not treated as
+  strikethrough delimiters.
+- Tables with pipe-delimited cells, a delimiter row and optional column
+  alignment.
+- Extended autolinks for `www.` URLs, `http://`, `https://` and `ftp://`
+  URLs, email addresses, and `mailto:` and `xmpp:` links.
+
+Because autolinking is always enabled, five examples in `test/spec.txt`
+that the CommonMark spec leaves as plain text now carry the extended
+expected output. `test/extensions.txt` covers the added syntax.
+
 Installing
 ----------
 

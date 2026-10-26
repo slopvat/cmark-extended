@@ -1,3 +1,10 @@
+/**
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Added table cell alignment attributes to XML output.
+ */
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -81,6 +88,17 @@ struct render_state {
   cmark_strbuf *xml;
   int indent;
 };
+
+static uint8_t S_cell_alignment(cmark_node *cell) {
+  cmark_node *row = cell->parent;
+  cmark_node *table = row ? row->parent : NULL;
+
+  if (table && table->type == CMARK_NODE_TABLE &&
+      cell->as.table_cell.cell_index < table->as.table.n_columns)
+    return table->as.table.alignments[cell->as.table_cell.cell_index];
+
+  return 0;
+}
 
 static inline void indent(struct render_state *state) {
   int i;
@@ -173,6 +191,22 @@ static int S_render_node(cmark_node *node, cmark_event_type ev_type,
       cmark_strbuf_puts(xml, " on_exit=\"");
       escape_xml_str(xml, node->as.custom.on_exit);
       cmark_strbuf_putc(xml, '"');
+      break;
+    case CMARK_NODE_TABLE_CELL:
+      if (node->parent && node->parent->type == CMARK_NODE_TABLE_ROW &&
+          node->parent->as.table_row.is_header) {
+        switch (S_cell_alignment(node)) {
+        case 'l':
+          cmark_strbuf_puts(xml, " align=\"left\"");
+          break;
+        case 'c':
+          cmark_strbuf_puts(xml, " align=\"center\"");
+          break;
+        case 'r':
+          cmark_strbuf_puts(xml, " align=\"right\"");
+          break;
+        }
+      }
       break;
     case CMARK_NODE_LINK:
     case CMARK_NODE_IMAGE:

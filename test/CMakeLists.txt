@@ -3,6 +3,11 @@
 # By default, we run the spec tests only if python3 is available.
 # To require the spec tests, compile with -DSPEC_TESTS=1
 
+# AI Disclosure:
+# - Authorship: AI-assisted
+# - Models: deepseek-v4.1-flash (DeepSeek)
+# - Scope: Registered the extension test suite.
+
 if(SPEC_TESTS)
   set(PYTHON_REQUIRED REQUIRED)
 else()
@@ -35,6 +40,12 @@ IF (Python3_Interpreter_FOUND)
     add_test(NAME entity_library
              COMMAND "$<TARGET_FILE:Python3::Interpreter>" "${CMAKE_CURRENT_SOURCE_DIR}/entity_tests.py"
                                                            --library-dir "$<TARGET_FILE_DIR:cmark>")
+
+    add_test(NAME extensionstest_library
+             COMMAND "$<TARGET_FILE:Python3::Interpreter>" "${CMAKE_CURRENT_SOURCE_DIR}/spec_tests.py"
+                                                           --no-normalize
+                                                           --spec "${CMAKE_CURRENT_SOURCE_DIR}/extensions.txt"
+                                                           --library-dir "$<TARGET_FILE_DIR:cmark>")
   endif()
 
   add_test(NAME spectest_executable
@@ -53,6 +64,12 @@ IF (Python3_Interpreter_FOUND)
            COMMAND "$<TARGET_FILE:Python3::Interpreter>" "${CMAKE_CURRENT_SOURCE_DIR}/spec_tests.py"
                                                          --no-normalize
                                                          --spec "${CMAKE_CURRENT_SOURCE_DIR}/regression.txt"
+                                                         --program "$<TARGET_FILE:cmark_exe>")
+
+  add_test(NAME extensionstest_executable
+           COMMAND "$<TARGET_FILE:Python3::Interpreter>" "${CMAKE_CURRENT_SOURCE_DIR}/spec_tests.py"
+                                                         --no-normalize
+                                                         --spec "${CMAKE_CURRENT_SOURCE_DIR}/extensions.txt"
                                                          --program "$<TARGET_FILE:cmark_exe>")
 
 ELSE(Python3_Interpreter_FOUND)

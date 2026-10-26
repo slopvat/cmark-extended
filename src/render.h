@@ -1,3 +1,11 @@
+/**
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Added a flag used to escape pipes inside table cells in CommonMark
+ *   output.
+ */
+
 #ifndef CMARK_RENDER_H
 #define CMARK_RENDER_H
 
@@ -30,6 +38,7 @@ struct cmark_renderer {
   bool begin_content;
   bool no_linebreaks;
   bool in_tight_list_item;
+  bool in_table_cell;
   struct block_number *block_number_in_list_item;
   void (*outc)(struct cmark_renderer *, cmark_escaping, int32_t, unsigned char);
   void (*cr)(struct cmark_renderer *);

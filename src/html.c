@@ -1,3 +1,11 @@
+/**
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Added HTML rendering for tables and strikethrough.
+ * - References: https://github.com/github/cmark-gfm (27d942c)
+ */
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -28,7 +36,26 @@ static inline void cr(cmark_strbuf *html) {
 struct render_state {
   cmark_strbuf *html;
   cmark_node *plain;
+  bool need_closing_table_body;
+  bool in_table_header;
 };
+
+static uint8_t S_cell_alignment(cmark_node *cell) {
+  cmark_node *row = cell->parent;
+  cmark_node *table = row ? row->parent : NULL;
+
+  if (table && table->type == CMARK_NODE_TABLE &&
+      cell->as.table_cell.cell_index < table->as.table.n_columns)
+    return table->as.table.alignments[cell->as.table_cell.cell_index];
+
+  return 0;
+}
+
+static void S_table_add_align(cmark_strbuf *html, const char *align) {
+  cmark_strbuf_puts(html, " align=\"");
+  cmark_strbuf_puts(html, align);
+  cmark_strbuf_puts(html, "\"");
+}
 
 static void S_render_sourcepos(cmark_node *node, cmark_strbuf *html,
                                int options) {
@@ -200,6 +227,74 @@ static int S_render_node(cmark_node *node, cmark_event_type ev_type,
     cmark_strbuf_puts(html, " />\n");
     break;
 
+  case CMARK_NODE_TABLE:
+    if (entering) {
+      cr(html);
+      cmark_strbuf_puts(html, "<table");
+      S_render_sourcepos(node, html, options);
+      cmark_strbuf_putc(html, '>');
+      state->need_closing_table_body = false;
+    } else {
+      if (state->need_closing_table_body) {
+        cr(html);
+        cmark_strbuf_puts(html, "</tbody>");
+      }
+      state->need_closing_table_body = false;
+      cr(html);
+      cmark_strbuf_puts(html, "</table>\n");
+    }
+    break;
+
+  case CMARK_NODE_TABLE_ROW:
+    if (entering) {
+      cr(html);
+      if (node->as.table_row.is_header) {
+        state->in_table_header = true;
+        cmark_strbuf_puts(html, "<thead>");
+        cr(html);
+      } else if (!state->need_closing_table_body) {
+        cmark_strbuf_puts(html, "<tbody>");
+        cr(html);
+        state->need_closing_table_body = true;
+      }
+      cmark_strbuf_puts(html, "<tr");
+      S_render_sourcepos(node, html, options);
+      cmark_strbuf_putc(html, '>');
+    } else {
+      cr(html);
+      cmark_strbuf_puts(html, "</tr>");
+      if (node->as.table_row.is_header) {
+        cr(html);
+        cmark_strbuf_puts(html, "</thead>");
+        state->in_table_header = false;
+      }
+    }
+    break;
+
+  case CMARK_NODE_TABLE_CELL:
+    if (entering) {
+      cr(html);
+      cmark_strbuf_puts(html, state->in_table_header ? "<th" : "<td");
+
+      switch (S_cell_alignment(node)) {
+      case 'l':
+        S_table_add_align(html, "left");
+        break;
+      case 'c':
+        S_table_add_align(html, "center");
+        break;
+      case 'r':
+        S_table_add_align(html, "right");
+        break;
+      }
+
+      S_render_sourcepos(node, html, options);
+      cmark_strbuf_putc(html, '>');
+    } else {
+      cmark_strbuf_puts(html, state->in_table_header ? "</th>" : "</td>");
+    }
+    break;
+
   case CMARK_NODE_PARAGRAPH:
     parent = cmark_node_parent(node);
     grandparent = cmark_node_parent(parent);
@@ -277,6 +372,14 @@ static int S_render_node(cmark_node *node, cmark_event_type ev_type,
     }
     break;
 
+  case CMARK_NODE_STRIKETHROUGH:
+    if (entering) {
+      cmark_strbuf_puts(html, "<del>");
+    } else {
+      cmark_strbuf_puts(html, "</del>");
+    }
+    break;
+
   case CMARK_NODE_LINK:
     if (entering) {
       cmark_strbuf_puts(html, "<a href=\"");
@@ -331,7 +434,7 @@ char *cmark_render_html(cmark_node *root, int options) {
   cmark_strbuf html = CMARK_BUF_INIT(root->mem);
   cmark_event_type ev_type;
   cmark_node *cur;
-  struct render_state state = {&html, NULL};
+  struct render_state state = {&html, NULL, false, false};
   cmark_iter *iter = cmark_iter_new(root);
 
   while ((ev_type = cmark_iter_next(iter)) != CMARK_EVENT_DONE) {

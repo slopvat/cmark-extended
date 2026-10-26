@@ -1,0 +1,643 @@
+---
+title: Extensions test
+version: '0.1'
+...
+
+**AI Disclosure:**
+- **Authorship:** AI-generated
+- **Models:** deepseek-v4.1-flash (DeepSeek)
+- **Scope:** Test cases and expected output written while implementing
+  strikethrough, tables and autolinking.
+
+## Strikethroughs
+
+```````````````````````````````` example
+A proper ~~strikethrough~~.
+.
+<p>A proper <del>strikethrough</del>.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+Single tildes are not strikethroughs: ~one~ ~two~.
+.
+<p>Single tildes are not strikethroughs: ~one~ ~two~.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+~~one~~ ~~two~~ ~~three~~
+.
+<p><del>one</del> <del>two</del> <del>three</del></p>
+````````````````````````````````
+
+```````````````````````````````` example
+~~a~~b~~c~~
+.
+<p><del>a</del>b<del>c</del></p>
+````````````````````````````````
+
+```````````````````````````````` example
+No ~~~three~~~ or ~~~~four~~~~.
+.
+<p>No ~~~three~~~ or ~~~~four~~~~.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+~~x~y~~
+.
+<p><del>x~y</del></p>
+````````````````````````````````
+
+```````````````````````````````` example
+**~~nested in strong~~**
+.
+<p><strong><del>nested in strong</del></strong></p>
+````````````````````````````````
+
+```````````````````````````````` example
+~~**strong in strikethrough**~~
+.
+<p><del><strong>strong in strikethrough</strong></del></p>
+````````````````````````````````
+
+```````````````````````````````` example
+A ~~multi
+line~~ strikethrough.
+.
+<p>A <del>multi
+line</del> strikethrough.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+No ~~mismatch~~~ here.
+.
+<p>No ~~mismatch~~~ here.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+Escaped \~\~tildes\~\~ stay literal.
+.
+<p>Escaped ~~tildes~~ stay literal.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+~~www.google.com~~
+.
+<p><del><a href="http://www.google.com">www.google.com</a></del></p>
+````````````````````````````````
+
+```````````````````````````````` example
+~~`code`~~
+.
+<p><del><code>code</code></del></p>
+````````````````````````````````
+
+## Tables
+
+```````````````````````````````` example
+| abc | def |
+| --- | --- |
+| ghi | jkl |
+| mno | pqr |
+.
+<table>
+<thead>
+<tr>
+<th>abc</th>
+<th>def</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ghi</td>
+<td>jkl</td>
+</tr>
+<tr>
+<td>mno</td>
+<td>pqr</td>
+</tr>
+</tbody>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+abc | def
+--- | ---
+xyz | ghi
+.
+<table>
+<thead>
+<tr>
+<th>abc</th>
+<th>def</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>xyz</td>
+<td>ghi</td>
+</tr>
+</tbody>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+aaa | bbb | ccc | ddd | eee
+:-- | --- | :-: | --- | --:
+fff | ggg | hhh | iii | jjj
+.
+<table>
+<thead>
+<tr>
+<th align="left">aaa</th>
+<th>bbb</th>
+<th align="center">ccc</th>
+<th>ddd</th>
+<th align="right">eee</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">fff</td>
+<td>ggg</td>
+<td align="center">hhh</td>
+<td>iii</td>
+<td align="right">jjj</td>
+</tr>
+</tbody>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+| a | b | c |
+| --- | --- | --- |
+| x
+| a | b
+| 1 | 2 | 3 | 4 |
+.
+<table>
+<thead>
+<tr>
+<th>a</th>
+<th>b</th>
+<th>c</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>a</td>
+<td>b</td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+| a | b |
+| --- | --- |
+| Escaped \| pipes \| here. | Like \| this. |
+| Within `\|code\| is okay` too. |
+| don't **\_reparse\_** |
+.
+<table>
+<thead>
+<tr>
+<th>a</th>
+<th>b</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Escaped | pipes | here.</td>
+<td>Like | this.</td>
+</tr>
+<tr>
+<td>Within <code>|code| is okay</code> too.</td>
+<td></td>
+</tr>
+<tr>
+<td>don't <strong>_reparse_</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+Hello!
+
+| _abc_ | セン |
+| ----- | ---- |
+| 1. Block elements inside cells don't work. | |
+| But _**inline elements do**_. | x |
+
+Hi!
+.
+<p>Hello!</p>
+<table>
+<thead>
+<tr>
+<th><em>abc</em></th>
+<th>セン</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Block elements inside cells don't work.</td>
+<td></td>
+</tr>
+<tr>
+<td>But <em><strong>inline elements do</strong></em>.</td>
+<td>x</td>
+</tr>
+</tbody>
+</table>
+<p>Hi!</p>
+````````````````````````````````
+
+```````````````````````````````` example
+123
+456
+| a | b |
+| --- | --- |
+d | e
+.
+<p>123
+456</p>
+<table>
+<thead>
+<tr>
+<th>a</th>
+<th>b</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>d</td>
+<td>e</td>
+</tr>
+</tbody>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+> | a |
+> | - |
+> | b |
+.
+<blockquote>
+<table>
+<thead>
+<tr>
+<th>a</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>b</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+````````````````````````````````
+
+```````````````````````````````` example
+- | a |
+  | - |
+  | b |
+.
+<ul>
+<li>
+<table>
+<thead>
+<tr>
+<th>a</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>b</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+````````````````````````````````
+
+```````````````````````````````` example
+| a |
+| - |
+.
+<table>
+<thead>
+<tr>
+<th>a</th>
+</tr>
+</thead>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+| a | b | c |
+| --- | --- |
+| this | isn't | a table |
+.
+<p>| a | b | c |
+| --- | --- |
+| this | isn't | a table |</p>
+````````````````````````````````
+
+```````````````````````````````` example
+| a | b |
+| --- | --- |
+| 1 | 2 |
+
+text after the table
+.
+<table>
+<thead>
+<tr>
+<th>a</th>
+<th>b</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<p>text after the table</p>
+````````````````````````````````
+
+```````````````````````````````` example
+| a | b |
+| --- | --- |
+| <strong>hello</strong> | ok <br> sure |
+.
+<table>
+<thead>
+<tr>
+<th>a</th>
+<th>b</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>hello</strong></td>
+<td>ok <br> sure</td>
+</tr>
+</tbody>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+| https://github.com | www.github.com |
+| --- | --- |
+| http://pokemon.com | scyther@pokemon.com |
+.
+<table>
+<thead>
+<tr>
+<th><a href="https://github.com">https://github.com</a></th>
+<th><a href="http://www.github.com">www.github.com</a></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="http://pokemon.com">http://pokemon.com</a></td>
+<td><a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a></td>
+</tr>
+</tbody>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+Here's a link to [Freedom Planet 2][] in a table header.
+| --- |
+
+[Freedom Planet 2]: http://www.freedomplanet2.com/
+.
+<table>
+<thead>
+<tr>
+<th>Here's a link to <a href="http://www.freedomplanet2.com/">Freedom Planet 2</a> in a table header.</th>
+</tr>
+</thead>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+| | b |
+| --- | --- |
+| | |
+.
+<table>
+<thead>
+<tr>
+<th></th>
+<th>b</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+| a |
+| --- |
+plain text ends the table
+.
+<table>
+<thead>
+<tr>
+<th>a</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>plain text ends the table</td>
+</tr>
+</tbody>
+</table>
+````````````````````````````````
+
+```````````````````````````````` example
+| a |
+| --- |
+- list starts after the table
+.
+<table>
+<thead>
+<tr>
+<th>a</th>
+</tr>
+</thead>
+</table>
+<ul>
+<li>list starts after the table</li>
+</ul>
+````````````````````````````````
+
+## Autolinks
+
+```````````````````````````````` example
+Visit http://google.com, https://google.com or ftp://example.com.
+.
+<p>Visit <a href="http://google.com">http://google.com</a>, <a href="https://google.com">https://google.com</a> or <a href="ftp://example.com">ftp://example.com</a>.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+Visit www.google.com and www.github.com/a_b.
+.
+<p>Visit <a href="http://www.google.com">www.google.com</a> and <a href="http://www.github.com/a_b">www.github.com/a_b</a>.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+Underscores not allowed in host name www.xxx.yyy._zzz
+.
+<p>Underscores not allowed in host name www.xxx.yyy._zzz</p>
+````````````````````````````````
+
+```````````````````````````````` example
+Underscores not allowed in host name www.xxx._yyy.zzz
+.
+<p>Underscores not allowed in host name www.xxx._yyy.zzz</p>
+````````````````````````````````
+
+```````````````````````````````` example
+Underscores allowed in domain name www._xxx.yyy.zzz
+.
+<p>Underscores allowed in domain name <a href="http://www._xxx.yyy.zzz">www._xxx.yyy.zzz</a></p>
+````````````````````````````````
+
+```````````````````````````````` example
+Write to scyther@pokemon.com, please.
+.
+<p>Write to <a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a>, please.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+scy.the_rbe-edr+ill@pokemon.com
+.
+<p><a href="mailto:scy.the_rbe-edr+ill@pokemon.com">scy.the_rbe-edr+ill@pokemon.com</a></p>
+````````````````````````````````
+
+```````````````````````````````` example
+mailto:scyther@pokemon.com
+.
+<p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a></p>
+````````````````````````````````
+
+```````````````````````````````` example
+xmpp:scyther@pokemon.com/message
+.
+<p><a href="xmpp:scyther@pokemon.com/message">xmpp:scyther@pokemon.com/message</a></p>
+````````````````````````````````
+
+```````````````````````````````` example
+mmmmailto:scyther@pokemon.com
+.
+<p>mmmmailto:<a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a></p>
+````````````````````````````````
+
+```````````````````````````````` example
+Full stop outside parens http://google.com/ok.
+.
+<p>Full stop outside parens <a href="http://google.com/ok">http://google.com/ok</a>.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+(Full stop inside parens http://google.com/ok.)
+.
+<p>(Full stop inside parens <a href="http://google.com/ok">http://google.com/ok</a>.)</p>
+````````````````````````````````
+
+```````````````````````````````` example
+http://www.pokemon.com/Pikachu_(Electric))
+.
+<p><a href="http://www.pokemon.com/Pikachu_(Electric)">http://www.pokemon.com/Pikachu_(Electric)</a>)</p>
+````````````````````````````````
+
+```````````````````````````````` example
+HTTP://EXAMPLE.COM
+.
+<p><a href="HTTP://EXAMPLE.COM">HTTP://EXAMPLE.COM</a></p>
+````````````````````````````````
+
+```````````````````````````````` example
+`http://google.com` and [http://google.com](http://example.com)
+.
+<p><code>http://google.com</code> and <a href="http://example.com">http://google.com</a></p>
+````````````````````````````````
+
+```````````````````````````````` example
+<http://google.com> stays a normal autolink
+.
+<p><a href="http://google.com">http://google.com</a> stays a normal autolink</p>
+````````````````````````````````
+
+```````````````````````````````` example
+http://🍄.ga/ http://x🍄.ga/
+.
+<p><a href="http://%F0%9F%8D%84.ga/">http://🍄.ga/</a> <a href="http://x%F0%9F%8D%84.ga/">http://x🍄.ga/</a></p>
+````````````````````````````````
+
+```````````````````````````````` example
+**Autolink and http://inlines**
+.
+<p><strong>Autolink and <a href="http://inlines">http://inlines</a></strong></p>
+````````````````````````````````
+
+```````````````````````````````` example
+See http://example.com/?a=1&amp;b=2 for details.
+.
+<p>See <a href="http://example.com/?a=1&amp;b=2">http://example.com/?a=1&amp;b=2</a> for details.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+This is not an email: @a.b.c@. x
+.
+<p>This is not an email: @a.b.c@. x</p>
+````````````````````````````````
+
+```````````````````````````````` example
+a.w@b.c
+.
+<p><a href="mailto:a.w@b.c">a.w@b.c</a></p>
+````````````````````````````````
+
+```````````````````````````````` example
+[http://google.com] stays unlinked.
+.
+<p>[http://google.com] stays unlinked.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+[scyther@pokemon.com] is still linked.
+.
+<p>[<a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a>] is still linked.</p>
+````````````````````````````````
+
+```````````````````````````````` example
+[foo *bar* https://github.com] stays unlinked.
+.
+<p>[foo <em>bar</em> https://github.com] stays unlinked.</p>
+````````````````````````````````
+

@@ -1,3 +1,11 @@
+/**
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Escape pipes when rendering literal text inside a CommonMark table
+ *   cell.
+ */
+
 #include <stdlib.h>
 #include "buffer.h"
 #include "cmark.h"
@@ -89,6 +97,10 @@ static void S_out(cmark_renderer *renderer, const char *source, bool wrap,
         renderer->begin_content = true;
         renderer->last_breakable = 0;
       } else {
+        if (renderer->in_table_cell && c == '|') {
+          cmark_strbuf_putc(renderer->buffer, '\\');
+          renderer->column += 1;
+        }
         cmark_render_code_point(renderer, c);
         renderer->begin_line = false;
         // we don't set 'begin_content' to false til we've
@@ -165,7 +177,7 @@ char *cmark_render(cmark_node *root, int options, int width,
   cmark_renderer renderer = {options,
                              mem,    &buf,    &pref,      0,      width,
                              0,      0,       true,       true,   false,
-                             false,  NULL,
+                             false,  false,   NULL,
                              outc,   S_cr,    S_blankline, S_out};
 
   while ((ev_type = cmark_iter_next(iter)) != CMARK_EVENT_DONE) {

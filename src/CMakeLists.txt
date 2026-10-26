@@ -1,3 +1,7 @@
+# AI Disclosure:
+# - Authorship: AI-assisted
+# - Models: deepseek-v4.1-flash (DeepSeek)
+# - Scope: Added the autolink and table sources to the library.
 
 configure_file(cmark_version.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/cmark_version.h)
@@ -6,6 +10,7 @@ configure_file(libcmark.pc.in
   @ONLY)
 
 add_library(cmark
+  autolink.c
   blocks.c
   buffer.c
   cmark.c
@@ -24,6 +29,7 @@ add_library(cmark
   render.c
   scanners.c
   scanners.re
+  table.c
   utf8.c
   xml.c)
 cmark_add_compile_options(cmark)

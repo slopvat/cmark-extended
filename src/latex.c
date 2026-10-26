@@ -1,3 +1,11 @@
+/**
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Added LaTeX rendering for tables and strikethrough.
+ * - References: https://github.com/github/cmark-gfm (27d942c)
+ */
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -346,6 +354,54 @@ static int S_render_node(cmark_renderer *renderer, cmark_node *node,
     }
     break;
 
+  case CMARK_NODE_TABLE:
+    if (entering) {
+      int i;
+      cmark_node *table = node;
+
+      CR();
+      LIT("\\begin{table}");
+      CR();
+      LIT("\\begin{tabular}{");
+      for (i = 0; i < table->as.table.n_columns; i++) {
+        switch (table->as.table.alignments[i]) {
+        case 'c':
+          LIT("c");
+          break;
+        case 'r':
+          LIT("r");
+          break;
+        default:
+          LIT("l");
+          break;
+        }
+      }
+      LIT("}");
+      CR();
+    } else {
+      LIT("\\end{tabular}");
+      CR();
+      LIT("\\end{table}");
+      BLANKLINE();
+    }
+    break;
+
+  case CMARK_NODE_TABLE_ROW:
+    if (!entering) {
+      CR();
+    }
+    break;
+
+  case CMARK_NODE_TABLE_CELL:
+    if (!entering) {
+      if (node->next) {
+        LIT(" & ");
+      } else {
+        LIT(" \\\\");
+      }
+    }
+    break;
+
   case CMARK_NODE_TEXT:
     OUT(cmark_node_get_literal(node), allow_wrap, NORMAL);
     break;
@@ -391,6 +447,14 @@ static int S_render_node(cmark_renderer *renderer, cmark_node *node,
   case CMARK_NODE_EMPH:
     if (entering) {
       LIT("\\emph{");
+    } else {
+      LIT("}");
+    }
+    break;
+
+  case CMARK_NODE_STRIKETHROUGH:
+    if (entering) {
+      LIT("\\sout{");
     } else {
       LIT("}");
     }

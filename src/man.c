@@ -1,3 +1,11 @@
+/**
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Added man rendering for tables and strikethrough.
+ * - References: https://github.com/github/cmark-gfm (27d942c)
+ */
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -186,6 +194,51 @@ static int S_render_node(cmark_renderer *renderer, cmark_node *node,
     CR();
     break;
 
+  case CMARK_NODE_TABLE:
+    if (entering) {
+      int i;
+      cmark_node *table = node;
+
+      CR();
+      LIT(".TS");
+      CR();
+      LIT("tab(@);");
+      CR();
+      for (i = 0; i < table->as.table.n_columns; i++) {
+        switch (table->as.table.alignments[i]) {
+        case 'l':
+          LIT("l");
+          break;
+        case 'r':
+          LIT("r");
+          break;
+        default:
+          LIT("c");
+          break;
+        }
+      }
+      if (table->as.table.n_columns) {
+        LIT(".");
+        CR();
+      }
+    } else {
+      LIT(".TE");
+      CR();
+    }
+    break;
+
+  case CMARK_NODE_TABLE_ROW:
+    if (!entering) {
+      CR();
+    }
+    break;
+
+  case CMARK_NODE_TABLE_CELL:
+    if (!entering && node->next) {
+      LIT("@");
+    }
+    break;
+
   case CMARK_NODE_PARAGRAPH:
     if (entering) {
       // no blank line if first paragraph in list:
@@ -249,6 +302,16 @@ static int S_render_node(cmark_renderer *renderer, cmark_node *node,
       LIT("\\f[I]");
     } else {
       LIT("\\f[]");
+    }
+    break;
+
+  case CMARK_NODE_STRIKETHROUGH:
+    if (entering) {
+      CR();
+      LIT(".ST \"");
+    } else {
+      LIT("\"");
+      CR();
     }
     break;
 

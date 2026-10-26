@@ -1,3 +1,12 @@
+/**
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Added CommonMark rendering for tables and strikethrough, including
+ *   escaping of pipes and tildes.
+ * - References: https://github.com/github/cmark-gfm (27d942c)
+ */
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -35,7 +44,7 @@ static inline void outc(cmark_renderer *renderer, cmark_escaping escape,
       ((escape == NORMAL &&
         (c < 0x20 ||
          c == '*' || c == '_' || c == '[' || c == ']' || c == '#' || c == '<' ||
-         c == '>' || c == '\\' || c == '`' ||
+         c == '>' || c == '\\' || c == '`' || c == '~' ||
 	 (c == '!' && (!nextc || nextc == '[')) ||
          (c == '&' && cmark_isalpha(nextc)) || (c == '!' && nextc == '[') ||
          ((CMARK_OPT_SMART & options) &&
@@ -47,7 +56,8 @@ static inline void outc(cmark_renderer *renderer, cmark_escaping escape,
           // at the beginning of line, so...
           !follows_digit) ||
          (renderer->begin_content && (c == '.' || c == ')') && follows_digit &&
-          (nextc == 0 || cmark_isspace(nextc))))) ||
+          (nextc == 0 || cmark_isspace(nextc))) ||
+         (renderer->in_table_cell && c == '|'))) ||
        (escape == URL &&
         (c == '`' || c == '<' || c == '>' || cmark_isspace(c) || c == '\\' ||
          c == ')' || c == '(')) ||
@@ -325,6 +335,51 @@ static int S_render_node(cmark_renderer *renderer, cmark_node *node,
     }
     break;
 
+  case CMARK_NODE_TABLE:
+    BLANKLINE();
+    break;
+
+  case CMARK_NODE_TABLE_ROW:
+    if (entering) {
+      CR();
+      LIT("|");
+    }
+    break;
+
+  case CMARK_NODE_TABLE_CELL:
+    if (entering) {
+      LIT(" ");
+      renderer->in_table_cell = true;
+    } else {
+      renderer->in_table_cell = false;
+      LIT(" |");
+      if (node->parent->as.table_row.is_header && !node->next) {
+        cmark_node *table = node->parent->parent;
+        int i;
+
+        CR();
+        LIT("|");
+        for (i = 0; i < table->as.table.n_columns; i++) {
+          switch (table->as.table.alignments[i]) {
+          case 'l':
+            LIT(" :-- |");
+            break;
+          case 'c':
+            LIT(" :-: |");
+            break;
+          case 'r':
+            LIT(" --: |");
+            break;
+          default:
+            LIT(" --- |");
+            break;
+          }
+        }
+        CR();
+      }
+    }
+    break;
+
   case CMARK_NODE_TEXT:
     OUT(cmark_node_get_literal(node), allow_wrap, NORMAL);
     break;
@@ -397,6 +452,10 @@ static int S_render_node(cmark_renderer *renderer, cmark_node *node,
     } else {
       LIT("**");
     }
+    break;
+
+  case CMARK_NODE_STRIKETHROUGH:
+    LIT("~~");
     break;
 
   case CMARK_NODE_EMPH:

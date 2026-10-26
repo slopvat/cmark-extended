@@ -1,3 +1,11 @@
+/**
+ * AI Disclosure:
+ * - Authorship: AI-assisted
+ * - Models: deepseek-v4.1-flash (DeepSeek)
+ * - Scope: Added internal helpers for creating child nodes and advancing the
+ *   parser offset.
+ */
+
 #ifndef CMARK_AST_H
 #define CMARK_AST_H
 
@@ -5,6 +13,7 @@
 #include "references.h"
 #include "node.h"
 #include "buffer.h"
+#include "chunk.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,6 +43,12 @@ struct cmark_parser {
   bool last_buffer_ended_with_cr;
   unsigned int total_size;
 };
+
+cmark_node *cmark_parser_add_child(cmark_parser *parser, cmark_node *parent,
+                                   cmark_node_type type, int start_column);
+
+void cmark_parser_advance_offset(cmark_parser *parser, cmark_chunk *input,
+                                 bufsize_t count, bool columns);
 
 #ifdef __cplusplus
 }
