@@ -1,5 +1,8 @@
-cmark
-=====
+cmark-extended
+==============
+
+**NOTE:** This is a slightly modified version of the canonical cmark library;
+see [_Extensions_](#extensions) below.
 
 [![CI
 tests](https://github.com/commonmark/cmark/workflows/CI%20tests/badge.svg)](https://github.com/commonmark/cmark/actions)
@@ -85,6 +88,10 @@ unconditionally; they cannot be turned off:
 Because autolinking is always enabled, five examples in `test/spec.txt`
 that the CommonMark spec leaves as plain text now carry the extended
 expected output. `test/extensions.txt` covers the added syntax.
+
+These extensions were based on the extensions in
+https://github.com/github/cmark-gfm, but reimplemented on top of the canonical
+repository because GitHub's fork has not kept up with the CommonMark spec.
 
 Installing
 ----------
