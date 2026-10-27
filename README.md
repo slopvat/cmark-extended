@@ -69,7 +69,8 @@ Extensions
 **AI Disclosure:**
 - **Authorship:** AI-assisted
 - **Models:** deepseek-v4.1-flash (DeepSeek)
-- **Scope:** Documented the extensions added to this fork.
+- **Scope:** Added support for strikethrough with tildes, tables and
+  autolinking.
 
 This fork enables three GitHub Flavored Markdown extensions
 unconditionally; they cannot be turned off:

@@ -1,9 +1,3 @@
-# AI Disclosure:
-# - Authorship: AI-assisted
-# - Models: deepseek-v4.1-flash (DeepSeek)
-# - Scope: Ignored the reference cmark-gfm clone and the shared library
-#   build directory.
-
 # Object files
 *.o
 *.ko
