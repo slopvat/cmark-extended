@@ -4,9 +4,6 @@ cmark-extended
 **NOTE:** This is a slightly modified version of the canonical cmark library;
 see [_Extensions_](#extensions) below.
 
-[![CI
-tests](https://github.com/commonmark/cmark/workflows/CI%20tests/badge.svg)](https://github.com/commonmark/cmark/actions)
-
 `cmark` is the C reference implementation of [CommonMark], a
 rationalized version of Markdown syntax with a [spec][the spec].
 (For the JavaScript reference implementation, see
