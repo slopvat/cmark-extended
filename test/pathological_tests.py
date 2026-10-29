@@ -4,8 +4,8 @@
 # AI Disclosure:
 # - Authorship: AI-assisted
 # - Models: deepseek-v4.1-flash (DeepSeek)
-# - Scope: Added pathological inputs for table header checks, extended
-#   autolinks and strikethrough.
+# - Scope: Added pathological inputs for table header checks and
+#   strikethrough.
 # - References: https://github.com/github/cmark-gfm (27d942c)
 
 import argparse
@@ -114,12 +114,6 @@ pathological = {
     "table header checks":
                  (("|-\nt>|-\n" * 20000),
                   re.compile(r"^<p>(\|-\nt&gt;\|-\n){19999}\|-\nt&gt;\|-</p>\n$")),
-    "autolink URL scan":
-                 (("<http://s" * 30000),
-                  re.compile(r'(&lt;<a href="http://s">http://s</a>){30000}')),
-    "autolink www scan":
-                 (("www.x " * 30000),
-                  re.compile(r'(<a href="http://www\.x">www\.x</a> ?){30000}')),
     "strikethrough tildes":
                  (("~e" + ",z~~" * 30000),
                   re.compile(r"^<p>~e(,z~~){30000}</p>\n$")),

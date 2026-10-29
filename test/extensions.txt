@@ -7,7 +7,7 @@ version: '0.1'
 - **Authorship:** AI-generated
 - **Models:** deepseek-v4.1-flash (DeepSeek)
 - **Scope:** Test cases and expected output written while implementing
-  strikethrough, tables and autolinking.
+  strikethrough and tables.
 
 ## Strikethroughs
 
@@ -82,7 +82,7 @@ Escaped \~\~tildes\~\~ stay literal.
 ```````````````````````````````` example
 ~~www.google.com~~
 .
-<p><del><a href="http://www.google.com">www.google.com</a></del></p>
+<p><del>www.google.com</del></p>
 ````````````````````````````````
 
 ```````````````````````````````` example
@@ -403,27 +403,6 @@ text after the table
 ````````````````````````````````
 
 ```````````````````````````````` example
-| https://github.com | www.github.com |
-| --- | --- |
-| http://pokemon.com | scyther@pokemon.com |
-.
-<table>
-<thead>
-<tr>
-<th><a href="https://github.com">https://github.com</a></th>
-<th><a href="http://www.github.com">www.github.com</a></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="http://pokemon.com">http://pokemon.com</a></td>
-<td><a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a></td>
-</tr>
-</tbody>
-</table>
-````````````````````````````````
-
-```````````````````````````````` example
 Here's a link to [Freedom Planet 2][] in a table header.
 | --- |
 
@@ -493,151 +472,5 @@ plain text ends the table
 <ul>
 <li>list starts after the table</li>
 </ul>
-````````````````````````````````
-
-## Autolinks
-
-```````````````````````````````` example
-Visit http://google.com, https://google.com or ftp://example.com.
-.
-<p>Visit <a href="http://google.com">http://google.com</a>, <a href="https://google.com">https://google.com</a> or <a href="ftp://example.com">ftp://example.com</a>.</p>
-````````````````````````````````
-
-```````````````````````````````` example
-Visit www.google.com and www.github.com/a_b.
-.
-<p>Visit <a href="http://www.google.com">www.google.com</a> and <a href="http://www.github.com/a_b">www.github.com/a_b</a>.</p>
-````````````````````````````````
-
-```````````````````````````````` example
-Underscores not allowed in host name www.xxx.yyy._zzz
-.
-<p>Underscores not allowed in host name www.xxx.yyy._zzz</p>
-````````````````````````````````
-
-```````````````````````````````` example
-Underscores not allowed in host name www.xxx._yyy.zzz
-.
-<p>Underscores not allowed in host name www.xxx._yyy.zzz</p>
-````````````````````````````````
-
-```````````````````````````````` example
-Underscores allowed in domain name www._xxx.yyy.zzz
-.
-<p>Underscores allowed in domain name <a href="http://www._xxx.yyy.zzz">www._xxx.yyy.zzz</a></p>
-````````````````````````````````
-
-```````````````````````````````` example
-Write to scyther@pokemon.com, please.
-.
-<p>Write to <a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a>, please.</p>
-````````````````````````````````
-
-```````````````````````````````` example
-scy.the_rbe-edr+ill@pokemon.com
-.
-<p><a href="mailto:scy.the_rbe-edr+ill@pokemon.com">scy.the_rbe-edr+ill@pokemon.com</a></p>
-````````````````````````````````
-
-```````````````````````````````` example
-mailto:scyther@pokemon.com
-.
-<p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a></p>
-````````````````````````````````
-
-```````````````````````````````` example
-xmpp:scyther@pokemon.com/message
-.
-<p><a href="xmpp:scyther@pokemon.com/message">xmpp:scyther@pokemon.com/message</a></p>
-````````````````````````````````
-
-```````````````````````````````` example
-mmmmailto:scyther@pokemon.com
-.
-<p>mmmmailto:<a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a></p>
-````````````````````````````````
-
-```````````````````````````````` example
-Full stop outside parens http://google.com/ok.
-.
-<p>Full stop outside parens <a href="http://google.com/ok">http://google.com/ok</a>.</p>
-````````````````````````````````
-
-```````````````````````````````` example
-(Full stop inside parens http://google.com/ok.)
-.
-<p>(Full stop inside parens <a href="http://google.com/ok">http://google.com/ok</a>.)</p>
-````````````````````````````````
-
-```````````````````````````````` example
-http://www.pokemon.com/Pikachu_(Electric))
-.
-<p><a href="http://www.pokemon.com/Pikachu_(Electric)">http://www.pokemon.com/Pikachu_(Electric)</a>)</p>
-````````````````````````````````
-
-```````````````````````````````` example
-HTTP://EXAMPLE.COM
-.
-<p><a href="HTTP://EXAMPLE.COM">HTTP://EXAMPLE.COM</a></p>
-````````````````````````````````
-
-```````````````````````````````` example
-`http://google.com` and [http://google.com](http://example.com)
-.
-<p><code>http://google.com</code> and <a href="http://example.com">http://google.com</a></p>
-````````````````````````````````
-
-```````````````````````````````` example
-<http://google.com> stays a normal autolink
-.
-<p><a href="http://google.com">http://google.com</a> stays a normal autolink</p>
-````````````````````````````````
-
-```````````````````````````````` example
-http://🍄.ga/ http://x🍄.ga/
-.
-<p><a href="http://%F0%9F%8D%84.ga/">http://🍄.ga/</a> <a href="http://x%F0%9F%8D%84.ga/">http://x🍄.ga/</a></p>
-````````````````````````````````
-
-```````````````````````````````` example
-**Autolink and http://inlines**
-.
-<p><strong>Autolink and <a href="http://inlines">http://inlines</a></strong></p>
-````````````````````````````````
-
-```````````````````````````````` example
-See http://example.com/?a=1&amp;b=2 for details.
-.
-<p>See <a href="http://example.com/?a=1&amp;b=2">http://example.com/?a=1&amp;b=2</a> for details.</p>
-````````````````````````````````
-
-```````````````````````````````` example
-This is not an email: @a.b.c@. x
-.
-<p>This is not an email: @a.b.c@. x</p>
-````````````````````````````````
-
-```````````````````````````````` example
-a.w@b.c
-.
-<p><a href="mailto:a.w@b.c">a.w@b.c</a></p>
-````````````````````````````````
-
-```````````````````````````````` example
-[http://google.com] stays unlinked.
-.
-<p>[http://google.com] stays unlinked.</p>
-````````````````````````````````
-
-```````````````````````````````` example
-[scyther@pokemon.com] is still linked.
-.
-<p>[<a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a>] is still linked.</p>
-````````````````````````````````
-
-```````````````````````````````` example
-[foo *bar* https://github.com] stays unlinked.
-.
-<p>[foo <em>bar</em> https://github.com] stays unlinked.</p>
 ````````````````````````````````
 

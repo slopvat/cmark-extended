@@ -4,8 +4,7 @@
  * AI Disclosure:
  * - Authorship: AI-assisted
  * - Models: deepseek-v4.1-flash (DeepSeek)
- * - Scope: Integrated table block parsing and enabled extended autolinking
- *   after the document is parsed.
+ * - Scope: Integrated table block parsing into the block parser.
  * - References: https://github.com/github/cmark-gfm (27d942c)
  *
  * For a high-level overview of the block parsing process,
@@ -29,7 +28,6 @@
 #include "houdini.h"
 #include "buffer.h"
 #include "chunk.h"
-#include "autolink.h"
 #include "table.h"
 
 #define CODE_INDENT 4
@@ -1381,7 +1379,6 @@ cmark_node *cmark_parser_finish(cmark_parser *parser) {
   finalize_document(parser);
 
   cmark_consolidate_text_nodes(parser->root);
-  cmark_autolink_process(parser->mem, parser->root);
 
   cmark_strbuf_free(&parser->curline);
 

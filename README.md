@@ -69,22 +69,17 @@ Extensions
 **AI Disclosure:**
 - **Authorship:** AI-assisted
 - **Models:** deepseek-v4.1-flash (DeepSeek)
-- **Scope:** Added support for strikethrough with tildes, tables and
-  autolinking.
+- **Scope:** Added support for strikethrough with tildes and tables.
 
-This fork enables three GitHub Flavored Markdown extensions
+This fork enables two GitHub Flavored Markdown extensions
 unconditionally; they cannot be turned off:
 
 - Strikethrough with `~~text~~`. Single tildes are not treated as
   strikethrough delimiters.
 - Tables with pipe-delimited cells, a delimiter row and optional column
   alignment.
-- Extended autolinks for `www.` URLs, `http://`, `https://` and `ftp://`
-  URLs, email addresses, and `mailto:` and `xmpp:` links.
 
-Because autolinking is always enabled, five examples in `test/spec.txt`
-that the CommonMark spec leaves as plain text now carry the extended
-expected output. `test/extensions.txt` covers the added syntax.
+`test/extensions.txt` covers the added syntax.
 
 These extensions were based on the extensions in
 https://github.com/github/cmark-gfm, but reimplemented on top of the canonical

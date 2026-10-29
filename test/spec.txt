@@ -6,14 +6,6 @@ date: '2024-01-28'
 license: '[CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)'
 ...
 
-<!--
-AI Disclosure:
-- Authorship: AI-assisted
-- Models: deepseek-v4.1-flash (DeepSeek)
-- Scope: Updated five autolink examples to match the always-on extended
-  autolinking in this fork.
--->
-
 # Introduction
 
 ## What is Markdown?
@@ -8853,7 +8845,7 @@ Spaces are not allowed in autolinks:
 ```````````````````````````````` example
 <https://foo.bar/baz bim>
 .
-<p>&lt;<a href="https://foo.bar/baz">https://foo.bar/baz</a> bim&gt;</p>
+<p>&lt;https://foo.bar/baz bim&gt;</p>
 ````````````````````````````````
 
 
@@ -8900,7 +8892,7 @@ Backslash-escapes do not work inside email autolinks:
 ```````````````````````````````` example
 <foo\+@bar.example.com>
 .
-<p>&lt;<a href="mailto:foo+@bar.example.com">foo+@bar.example.com</a>&gt;</p>
+<p>&lt;foo+@bar.example.com&gt;</p>
 ````````````````````````````````
 
 
@@ -8916,7 +8908,7 @@ These are not autolinks:
 ```````````````````````````````` example
 < https://foo.bar >
 .
-<p>&lt; <a href="https://foo.bar">https://foo.bar</a> &gt;</p>
+<p>&lt; https://foo.bar &gt;</p>
 ````````````````````````````````
 
 
@@ -8937,14 +8929,14 @@ These are not autolinks:
 ```````````````````````````````` example
 https://example.com
 .
-<p><a href="https://example.com">https://example.com</a></p>
+<p>https://example.com</p>
 ````````````````````````````````
 
 
 ```````````````````````````````` example
 foo@bar.example.com
 .
-<p><a href="mailto:foo@bar.example.com">foo@bar.example.com</a></p>
+<p>foo@bar.example.com</p>
 ````````````````````````````````
 
 
